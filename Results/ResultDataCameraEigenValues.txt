@@ -1,0 +1,25 @@
+Eigen value1 : 1.422316630507945E7
+Eigen value2 : 383390.40917927044
+Eigen value3 : 95243.73508473637
+Eigen value4 : 56427.25576113891
+Eigen value5 : 8402.09606397907
+Eigen value6 : 723.8266741903885
+Eigen value7 : 452.1286619073706
+Eigen value8 : 308.5119020854163
+Eigen value9 : 48.12622541850428
+Eigen value10 : 28.256747736528446
+Eigen value11 : 0.7092480995836536
+
+total = 1.4768191360628014E7
+
+Cumulative eigen value percentage till 1 = 96.30946645909803
+Cumulative eigen value percentage till 2 = 98.9055217228549
+Cumulative eigen value percentage till 3 = 99.55044656679115
+Cumulative eigen value percentage till 4 = 99.93253300096056
+Cumulative eigen value percentage till 5 = 99.98942619701148
+Cumulative eigen value percentage till 6 = 99.99432745171842
+Cumulative eigen value percentage till 7 = 99.99738895499169
+Cumulative eigen value percentage till 8 = 99.99947798468092
+Cumulative eigen value percentage till 9 = 99.99980386226636
+Cumulative eigen value percentage till 10 = 99.99999519746135
+Cumulative eigen value percentage till 11 = 100.0

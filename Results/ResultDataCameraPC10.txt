@@ -1,0 +1,90 @@
+Test instance is 657
+Nearest neighbours before pre processing : 
+
+Neighbours number 1 = Index : 668 Distance : 20.024984394500787
+Neighbours number 2 = Index : 884 Distance : 39.93745109543172
+Neighbours number 3 = Index : 848 Distance : 40.33608806019741
+Neighbours number 4 = Index : 229 Distance : 46.79743582719036
+Neighbours number 5 = Index : 960 Distance : 48.88762624632127
+
+
+Nearest neighbours after PCA pre processing : 
+
+Neighbours number 1 = Index : 668 Distance : 20.024984394500787
+Neighbours number 2 = Index : 486 Distance : 49.839743177508446
+Neighbours number 3 = Index : 884 Distance : 39.93745109543172
+Neighbours number 4 = Index : 229 Distance : 46.79743582719036
+Neighbours number 5 = Index : 848 Distance : 40.33608806019741
+---------------------------------------------
+Test instance is 676
+Nearest neighbours before pre processing : 
+
+Neighbours number 1 = Index : 675 Distance : 10.0
+Neighbours number 2 = Index : 679 Distance : 25.357444666211933
+Neighbours number 3 = Index : 817 Distance : 56.55086206239477
+Neighbours number 4 = Index : 522 Distance : 56.66568626602876
+Neighbours number 5 = Index : 41 Distance : 61.310684223877324
+
+
+Nearest neighbours after PCA pre processing : 
+
+Neighbours number 1 = Index : 675 Distance : 10.0
+Neighbours number 2 = Index : 679 Distance : 25.357444666211933
+Neighbours number 3 = Index : 522 Distance : 56.66568626602876
+Neighbours number 4 = Index : 41 Distance : 61.310684223877324
+Neighbours number 5 = Index : 817 Distance : 56.55086206239477
+---------------------------------------------
+Test instance is 137
+Nearest neighbours before pre processing : 
+
+Neighbours number 1 = Index : 136 Distance : 4.0
+Neighbours number 2 = Index : 135 Distance : 20.663978319771825
+Neighbours number 3 = Index : 431 Distance : 34.322004603461025
+Neighbours number 4 = Index : 666 Distance : 39.344631145812
+Neighbours number 5 = Index : 529 Distance : 84.8940516172953
+
+
+Nearest neighbours after PCA pre processing : 
+
+Neighbours number 1 = Index : 136 Distance : 4.0
+Neighbours number 2 = Index : 135 Distance : 20.663978319771825
+Neighbours number 3 = Index : 431 Distance : 34.322004603461025
+Neighbours number 4 = Index : 666 Distance : 39.344631145812
+Neighbours number 5 = Index : 529 Distance : 84.8940516172953
+---------------------------------------------
+Test instance is 998
+Nearest neighbours before pre processing : 
+
+Neighbours number 1 = Index : 658 Distance : 37.17526059088221
+Neighbours number 2 = Index : 659 Distance : 38.03945320322047
+Neighbours number 3 = Index : 31 Distance : 46.87216658103186
+Neighbours number 4 = Index : 29 Distance : 50.70502933634887
+Neighbours number 5 = Index : 30 Distance : 54.735728733616035
+
+
+Nearest neighbours after PCA pre processing : 
+
+Neighbours number 1 = Index : 95 Distance : 57.706152185014034
+Neighbours number 2 = Index : 499 Distance : 61.554853586049575
+Neighbours number 3 = Index : 31 Distance : 46.87216658103186
+Neighbours number 4 = Index : 659 Distance : 38.03945320322047
+Neighbours number 5 = Index : 658 Distance : 37.17526059088221
+---------------------------------------------
+Test instance is 6
+Nearest neighbours before pre processing : 
+
+Neighbours number 1 = Index : 197 Distance : 82.46817568007674
+Neighbours number 2 = Index : 196 Distance : 84.303024856763
+Neighbours number 3 = Index : 622 Distance : 133.46535130886969
+Neighbours number 4 = Index : 3 Distance : 144.53719244540486
+Neighbours number 5 = Index : 295 Distance : 154.30489298787643
+
+
+Nearest neighbours after PCA pre processing : 
+
+Neighbours number 1 = Index : 197 Distance : 82.46817568007674
+Neighbours number 2 = Index : 196 Distance : 84.303024856763
+Neighbours number 3 = Index : 982 Distance : 161.6168308066954
+Neighbours number 4 = Index : 568 Distance : 226.4155471693585
+Neighbours number 5 = Index : 622 Distance : 133.46535130886969
+---------------------------------------------
