@@ -36,7 +36,6 @@ public class KnnCompCamera {
         int dataSize = line.length() - line.replace(",", "").length() + 1;
 
         double dataAvg[] = new double[dataSize];
-        int ct = 0;
 
         while (line != null) {
             String dataCompsStr[] = line.split(",");
@@ -51,6 +50,7 @@ public class KnnCompCamera {
             fullData.add(dataComps);
             line = br.readLine();
         }
+        br.close();
 
         for (int i = 0; i < 5; i++) {
             TEST_INDEX = rn.nextInt(1000);
@@ -58,7 +58,7 @@ public class KnnCompCamera {
             System.out.println("Test instance is " + TEST_INDEX);
 
             printNearestNeighbours(fullData, true);
-            printNearestNeighBoursPCA(fullData);
+            printNearestNeighBoursPCA(fullData, dataAvg);
             
             System.out.println("---------------------------------------------");
 
@@ -112,10 +112,10 @@ public class KnnCompCamera {
         });
     }
 
-    private static void printNearestNeighBoursPCA(ArrayList<double[]> fullData) {
+    private static void printNearestNeighBoursPCA(ArrayList<double[]> fullData, double[] dataAvg) {
         int fullDataSize = fullData.size();
         int dataSize = fullData.get(0).length;
-        double dataAvg[] = new double[dataSize];
+        //double dataAvg[] = new double[dataSize];
 
         double[][] oldData2dArray = new double[fullDataSize][dataSize];
 
@@ -188,7 +188,7 @@ public class KnnCompCamera {
         System.out.println("\nNearest neighbours after PCA pre processing : \n");
 
         for (int i = 1; i <= NUM_OF_NEIGHBOURS; i++) {
-            System.out.println("Neighbours number " + i + " = Index : " + distObjects.get(i).index + " Distance : " + calculateDistance(fullData.get(TEST_INDEX), fullData.get(distObjects.get(i).index)));
+            System.out.println("Neighbours number " + i + " = Index : " + distObjects.get(i).index + " Distance : " + calculateDistance(fullNewData.get(TEST_INDEX), fullNewData.get(distObjects.get(i).index)));
         }
     }
 
@@ -202,7 +202,7 @@ public class KnnCompCamera {
         return metricAdjustProdTotal / (fullDataAdjust.size() - 1); 
     }
 
-    private static List performEigenOperations(double[][] covarianceMatrix, int dataSize) {
+    private static List<EigenObject> performEigenOperations(double[][] covarianceMatrix, int dataSize) {
         Matrix evdMatrix = new Matrix(covarianceMatrix);
         EigenvalueDecomposition evd = new EigenvalueDecomposition(evdMatrix);
 

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class KnnCompCommunity {
+public class KnnCompRoad {
     private static final int NUM_OF_NEIGHBOURS = 5;
     private static int TEST_INDEX = 150;
     private static final int REDUCED_LENGTH = 8;
