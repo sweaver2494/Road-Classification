@@ -29,7 +29,6 @@ public class KnnCompRoad {
     private static final int REDUCED_LENGTH = 8;
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        Random rn = new Random();
         //Contains each row of variables
         ArrayList<double[]> fullData = new ArrayList<>();
         //Maps each row index in the data to its classification
@@ -66,19 +65,30 @@ public class KnnCompRoad {
             index++;
         }
         br.close();
+        
+        testPCA(fullData, indexClass, dataAvg);
+        //testVars(fullData, indexClass, dataAvg);
 
+
+    }
+    
+    public static void testPCA(ArrayList<double[]> fullData, HashMap<Integer,Double> indexClass, double[] dataAvg) {
+        Random rn = new Random();
         for (int i = 0; i < 5; i++) {
             TEST_INDEX = rn.nextInt(13);
             
             System.out.println("Test instance is " + TEST_INDEX);
 
-            printNearestNeighbours(fullData, true);
-            printNearestNeighBoursPCA(fullData, dataAvg);
+            printNearestNeighbours(fullData, indexClass, true);
+            printNearestNeighBoursPCA(fullData, indexClass, dataAvg);
             
             System.out.println("---------------------------------------------");
 
         }
-
+    }
+    
+    public static void testVars(ArrayList<double[]> fullData, HashMap<Integer,Double> indexClass, double[] dataAvg) {
+    	
     }
 
     public static double calculateDistance(double[] array1, double[] array2) {
@@ -89,7 +99,7 @@ public class KnnCompRoad {
         return Math.sqrt(Sum);
     }
 
-    private static ArrayList<DistObj> printNearestNeighbours(ArrayList<double[]> fullData, boolean toprint) {
+    private static ArrayList<DistObj> printNearestNeighbours(ArrayList<double[]> fullData, HashMap<Integer,Double> indexClass, boolean toprint) {
         int testIndex = TEST_INDEX;
         int fullDataSize = fullData.size();
 
@@ -108,10 +118,10 @@ public class KnnCompRoad {
         sortDistObjs(distObjects);
         if(!toprint){return distObjects;}
         
-        System.out.println("Nearest neighbours before pre processing : \n");
+        System.out.println("Neighbors Before PCA: \n");
 
         for (int i = 1; i <= NUM_OF_NEIGHBOURS; i++) {
-            System.out.println("Neighbours number " + i + " = Index : " + distObjects.get(i).index + " Distance : " + distObjects.get(i).distance);
+            System.out.println("Neighbor " + i + ": Index=" + distObjects.get(i).index + ", Classification=" + indexClass.get(distObjects.get(i).index) + ", Distance=" + distObjects.get(i).distance);
         }
 
         return distObjects;
@@ -127,7 +137,7 @@ public class KnnCompRoad {
         });
     }
 
-    private static void printNearestNeighBoursPCA(ArrayList<double[]> fullData, double[] dataAvg) {
+    private static void printNearestNeighBoursPCA(ArrayList<double[]> fullData, HashMap<Integer,Double> indexClass, double[] dataAvg) {
         int fullDataSize = fullData.size();
         int dataSize = fullData.get(0).length;
         //double dataAvg[] = new double[dataSize];
@@ -198,12 +208,12 @@ public class KnnCompRoad {
             fullNewData.add(newData2dArray[i]);
         }
 
-        ArrayList<DistObj> distObjects = printNearestNeighbours(fullNewData, false);
+        ArrayList<DistObj> distObjects = printNearestNeighbours(fullNewData, indexClass, false);
 
-        System.out.println("\nNearest neighbours after PCA pre processing : \n");
+        System.out.println("\nNeighbors After PCA: \n");
 
         for (int i = 1; i <= NUM_OF_NEIGHBOURS; i++) {
-            System.out.println("Neighbours number " + i + " = Index : " + distObjects.get(i).index + " Distance : " + calculateDistance(fullNewData.get(TEST_INDEX), fullNewData.get(distObjects.get(i).index)));
+            System.out.println("Neighbor " + i + ": Index=" + distObjects.get(i).index + ", Classification=" + indexClass.get(distObjects.get(i).index) + ", Distance=" + calculateDistance(fullNewData.get(TEST_INDEX), fullNewData.get(distObjects.get(i).index)));
         }
     }
 
