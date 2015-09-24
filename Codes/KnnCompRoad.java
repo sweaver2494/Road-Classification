@@ -25,44 +25,50 @@ import java.util.Random;
 
 public class KnnCompRoad {
     private static final int NUM_OF_NEIGHBOURS = 5;
-    private static int TEST_INDEX = 150;
+    private static int TEST_INDEX = 10;
     private static final int REDUCED_LENGTH = 8;
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         Random rn = new Random();
+        //Contains each row of variables
         ArrayList<double[]> fullData = new ArrayList<>();
-        
         //Maps each row index in the data to its classification
-        HashMap<double[], Double> indexClass = new HashMap<double[], Double>();
-
+        HashMap<Integer, Double> indexClass = new HashMap<Integer, Double>();
+        
         BufferedReader br = new BufferedReader(new FileReader("RawData/roads.csv"));
+        //discard first line since it will contain headers
+        br.readLine();
         String line = br.readLine();
         
-        //dataSize is the number of variables (columns). This includes the last column, which specifies classification
-        int dataSize = line.length() - line.replace(",", "").length() + 1;
+        //dataSize is the number of variables (columns). This does not include the last column, which specifies classification and is not a variable.
+        int dataSize = line.length() - line.replace(",", "").length();
+        int index = 0;
 
-        double dataAvg[] = new double[dataSize-1];
+        double dataAvg[] = new double[dataSize];
 
         while (line != null) {
             String dataCompsStr[] = line.split(",");
-
-            double dataComps[] = new double[dataSize-1];
+            double dataComps[] = new double[dataSize];
             
-            for (int i = 0; i < dataSize-1; i++) {
+            for (int i = 0; i < dataSize; i++) {
                 dataComps[i] = Double.parseDouble(dataCompsStr[i]);
                 dataAvg[i] += dataComps[i];
             }
-            
-            double classification = Double.parseDouble(dataCompsStr[dataSize-1]);
-            indexClass.put(dataComps, classification);
-            
+            //Add the row of variables to the data set
             fullData.add(dataComps);
+            
+            //The last column is not a variable, but instead specifies the classification.
+            //indexClass hashes the index of each row to its classification.
+            double classification = Double.parseDouble(dataCompsStr[dataSize]);
+            indexClass.put(index, classification);
+            
             line = br.readLine();
+            index++;
         }
         br.close();
 
         for (int i = 0; i < 5; i++) {
-            TEST_INDEX = rn.nextInt(329);
+            TEST_INDEX = rn.nextInt(13);
             
             System.out.println("Test instance is " + TEST_INDEX);
 
