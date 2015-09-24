@@ -10,6 +10,7 @@
 
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -29,24 +31,31 @@ public class KnnCompRoad {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         Random rn = new Random();
         ArrayList<double[]> fullData = new ArrayList<>();
+        
+        //Maps each row index in the data to its classification
+        HashMap<double[], Double> indexClass = new HashMap<double[], Double>();
 
-        BufferedReader br = new BufferedReader(new FileReader("RawData/city.csv"));
+        BufferedReader br = new BufferedReader(new FileReader("RawData/roads.csv"));
         String line = br.readLine();
-
+        
+        //dataSize is the number of variables (columns). This includes the last column, which specifies classification
         int dataSize = line.length() - line.replace(",", "").length() + 1;
 
-        double dataAvg[] = new double[dataSize];
+        double dataAvg[] = new double[dataSize-1];
 
         while (line != null) {
             String dataCompsStr[] = line.split(",");
 
-            double dataComps[] = new double[dataSize];
-
-            for (int i = 0; i < dataSize; i++) {
+            double dataComps[] = new double[dataSize-1];
+            
+            for (int i = 0; i < dataSize-1; i++) {
                 dataComps[i] = Double.parseDouble(dataCompsStr[i]);
                 dataAvg[i] += dataComps[i];
             }
-
+            
+            double classification = Double.parseDouble(dataCompsStr[dataSize-1]);
+            indexClass.put(dataComps, classification);
+            
             fullData.add(dataComps);
             line = br.readLine();
         }
