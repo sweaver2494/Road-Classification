@@ -30,43 +30,92 @@ public class KnnCompRoad {
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         //Contains each row of variables
-        ArrayList<double[]> fullData = new ArrayList<>();
+        //ArrayList<double[]> fullData = new ArrayList<>();
         //Maps each row index in the data to its classification
-        HashMap<Integer, Double> indexClass = new HashMap<Integer, Double>();
+        //HashMap<Integer, Double> indexClass = new HashMap<Integer, Double>();
         
         BufferedReader br = new BufferedReader(new FileReader("RawData/roads.csv"));
         //discard first line since it will contain headers
         br.readLine();
-        String line = br.readLine();
         
-        //dataSize is the number of variables (columns). This does not include the last column, which specifies classification and is not a variable.
-        int dataSize = line.length() - line.replace(",", "").length();
-        int index = 0;
+        
+        //double dataAvg[] = new double[dataSize];
+        
+        //values contains the values of each sensor type
+        HashMap<String, ArrayList<Double>> values = new HashMap<String, ArrayList<Double>>();
+        //sum is the sum of all values of each sensor type
+        HashMap<String, Double> sum = new HashMap<String, Double>();
+        //avg is the average of all values of each sensor type
+        HashMap<String, Double> avg = new HashMap<String, Double>();
+        //var is the variance of all variances of each sensor type
+        HashMap<String, Double> var = new HashMap<String, Double>();
+        
+        //int index = 0;
 
-        double dataAvg[] = new double[dataSize];
+        
 
+        String line = br.readLine();
         while (line != null) {
-            String dataCompsStr[] = line.split(",");
-            double dataComps[] = new double[dataSize];
+        	String dataCompsStr[] = line.split(",");
+        	String key = dataCompsStr[1];
+        	double val = Double.parseDouble(dataCompsStr[3]);
+        	
+        	if (values.containsKey(key)) {
+        		ArrayList<Double> temp = values.get(key);
+        		temp.add(val);
+        	} else {
+        		ArrayList<Double> temp = new ArrayList<Double>();
+        		temp.add(val);
+        		values.put(key, temp);
+        	}
+        	
+        	line = br.readLine();
+        }
+        
+      
+        for (String key : values.keySet()) {
+        	//calculate average and sum for each reading (value) for each sensor type (key)
+        	for (double val : values.get(key)) {
+        		if (sum.containsKey(key)) {
+                	sum.put(key, sum.get(key) + val);
+                } else {
+                	sum.put(key, val);
+                }
+        	}
+        	double keyAvg = sum.get(key) / values.get(key).size();
+        	avg.put(key, keyAvg);
+        	
+        	//calculate variance for each reading (value) for each sensor type (key)
+        	//variance is the average of the squared differences from the mean
+        	for (double val : values.get(key)) {
+        		if (var.containsKey(key)) {
+        			var.put(key, var.get(key) + Math.pow(val - keyAvg, 2));
+        		} else {
+                   	var.put(key, Math.pow(val - keyAvg, 2));
+                }
+        	}
+        	double keyVar = var.get(key) / values.get(key).size();
+        	var.put(key, keyVar);
+        }
+
+            //double dataComps[] = new double[dataSize];
             
-            for (int i = 0; i < dataSize; i++) {
-                dataComps[i] = Double.parseDouble(dataCompsStr[i]);
-                dataAvg[i] += dataComps[i];
-            }
+            //dataComps[i] = Double.parseDouble(dataCompsStr[i]);
+            //dataAvg[i] += dataComps[i];
+            
             //Add the row of variables to the data set
-            fullData.add(dataComps);
+            //fullData.add(dataComps);
             
             //The last column is not a variable, but instead specifies the classification.
             //indexClass hashes the index of each row to its classification.
-            double classification = Double.parseDouble(dataCompsStr[dataSize]);
-            indexClass.put(index, classification);
+            //double classification = Double.parseDouble(dataCompsStr[dataSize]);
+            //indexClass.put(index, classification);
+        	//index++;
             
-            line = br.readLine();
-            index++;
-        }
+        //}
         br.close();
         
-        testPCA(fullData, indexClass, dataAvg);
+        //testPCA(fullData, indexClass, dataAvg);
         //testVars(fullData, indexClass, dataAvg);
 
 
