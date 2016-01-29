@@ -3,17 +3,19 @@
  * for randomly selected testinstances calculated before and after the 
  * application of PCA pre-processing.
  *
- * This code works for community dataset
+ * This code works for road classification datasets
  *
- * @author Nikhilesh pandey
+ * @author Scott Weaver
  */
 
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,51 +30,143 @@ public class KnnCompRoad {
     private static int TEST_INDEX = 10;
     private static final int REDUCED_LENGTH = 8;
 
-    public static void main(String[] args) throws FileNotFoundException, IOException {
-        //Contains each row of variables
-        //ArrayList<double[]> fullData = new ArrayList<>();
-        //Maps each row index in the data to its classification
-        //HashMap<Integer, Double> indexClass = new HashMap<Integer, Double>();
-        
-        BufferedReader br = new BufferedReader(new FileReader("RawData/roads.csv"));
-        //discard first line since it will contain headers
+    public static void main(String[] args) {
+    	String featureFolderPath = "FeatureFiles/";
+    	(new File(featureFolderPath)).mkdirs();
+ 
+		//Ensure files have unique names by appending an integer after conflicting filenames.
+		int i=0;
+		String featureFilePath  = featureFolderPath + "features_0.csv";
+		while ((new File(featureFilePath)).exists()) {
+			i++;
+			featureFilePath  = featureFolderPath + "features_" + i + ".csv";
+		}
+		System.out.println("Feature File Path " + featureFilePath);
+		
+		try {
+	    	BufferedWriter featureFileBuffer = new BufferedWriter(new FileWriter(featureFilePath, true));
+	    	
+	    	//values contains the values of each sensor type
+	        HashMap<String, ArrayList<Double>> values = new HashMap<String, ArrayList<Double>>();
+	    	//sum is the sum of all values of each sensor type
+	        HashMap<String, Double> sum = new HashMap<String, Double>();
+	        //avg is the average of all values of each sensor type
+	        HashMap<String, Double> avg = new HashMap<String, Double>();
+	        //var is the variance of all variances of each sensor type
+	        HashMap<String, Double> var = new HashMap<String, Double>();
+	        
+	    	//Calculate sensor average & variance for each feature, then write to features file
+	    	String rawDataFolderPath = "RawData/";
+	    	File rawDataFolder = new File(rawDataFolderPath);
+	    	int row = 0;
+	    	if (rawDataFolder.isDirectory()) {
+	    		for (File rawDataFile : rawDataFolder.listFiles()) {
+	    			
+	    			//read sensor data file and list all values for each feature
+	    	        readRawData(rawDataFile, values);
+	    	        
+	    	        //calculate the sum, average, and variance of all values for each feature
+	    	        calculateSumAvgVar(values, sum, avg, var);
+	    	        
+	    	        //write feature column headers only once
+	    	        if (row == 0) {
+	    	        	writeFeatureFileHeaders(featureFileBuffer, sum, avg, var);
+	    	        }
+	    	        
+	    	        //write single row of feature data, one column per feature
+	    	        writeFeatureFile(featureFileBuffer, sum, avg, var);
+	    	        
+	    	        //set all default values for each key to reuse containers with the same key ordering
+	    	        for (String key : values.keySet()) {
+	    	        	ArrayList<Double> tempArrayList = values.get(key);
+	    	        	tempArrayList.clear();
+	    	        	
+	    	        	sum.replace(key, (double)0);
+	    	        	avg.replace(key, (double)0);
+	    	        	var.replace(key, (double)0);
+	    	        }
+	    	        
+	    	        row++;
+	    		}
+	    	}
+	    	featureFileBuffer.close();
+	    	
+	    	performClassificationAnalysis(featureFilePath);
+	    	
+		} catch (IOException e) {
+			System.err.println("IO Exception: " + e.getMessage());
+		}
+    }
+    
+    public static void performClassificationAnalysis(String featureFilePath) {
+    	Random rn = new Random();
+        ArrayList<double[]> fullData = new ArrayList<>();
+
+        BufferedReader br = new BufferedReader(new FileReader(featureFilePath));
+        //Ignore headers on first row. Skip to data
         br.readLine();
-        
-        
-        //double dataAvg[] = new double[dataSize];
-        
-        //values contains the values of each sensor type
-        HashMap<String, ArrayList<Double>> values = new HashMap<String, ArrayList<Double>>();
-        //sum is the sum of all values of each sensor type
-        HashMap<String, Double> sum = new HashMap<String, Double>();
-        //avg is the average of all values of each sensor type
-        HashMap<String, Double> avg = new HashMap<String, Double>();
-        //var is the variance of all variances of each sensor type
-        HashMap<String, Double> var = new HashMap<String, Double>();
-        
-        //int index = 0;
-
-        
-
         String line = br.readLine();
+
+        int dataSize = line.length() - line.replace(",", "").length() + 1;
+
+        double dataAvg[] = new double[dataSize];
+
         while (line != null) {
-        	String dataCompsStr[] = line.split(",");
-        	String key = dataCompsStr[1];
-        	double val = Double.parseDouble(dataCompsStr[3]);
-        	
-        	if (values.containsKey(key)) {
-        		ArrayList<Double> temp = values.get(key);
-        		temp.add(val);
-        	} else {
-        		ArrayList<Double> temp = new ArrayList<Double>();
-        		temp.add(val);
-        		values.put(key, temp);
-        	}
-        	
-        	line = br.readLine();
+            String dataCompsStr[] = line.split(",");
+
+            double dataComps[] = new double[dataSize];
+
+            for (int i = 0; i < dataSize; i++) {
+                dataComps[i] = Double.parseDouble(dataCompsStr[i]);
+                dataAvg[i] += dataComps[i];
+            }
+
+            fullData.add(dataComps);
+            line = br.readLine();
         }
-        
-      
+        br.close();
+
+        for (int i = 0; i < 5; i++) {
+            TEST_INDEX = rn.nextInt(1000);
+            
+            System.out.println("Test instance is " + TEST_INDEX);
+
+            printNearestNeighbours(fullData, true);
+            printNearestNeighBoursPCA(fullData, dataAvg);
+            
+            System.out.println("---------------------------------------------");
+
+        }
+    }
+    
+    public static void readRawData(File rawDataFile, HashMap<String, ArrayList<Double>> values) {
+    	try {
+	        BufferedReader rawDataBuffer = new BufferedReader(new FileReader(rawDataFile));
+	
+	        String line = rawDataBuffer.readLine();
+	        while (line != null) {
+	        	String dataCompsStr[] = line.split(",");
+	        	String key = dataCompsStr[1];
+	        	double val = Double.parseDouble(dataCompsStr[3]);
+	        	
+	        	if (values.containsKey(key)) {
+	        		ArrayList<Double> temp = values.get(key);
+	        		temp.add(val);
+	        	} else {
+	        		ArrayList<Double> temp = new ArrayList<Double>();
+	        		temp.add(val);
+	        		values.put(key, temp);
+	        	}
+	        	
+	        	line = rawDataBuffer.readLine();
+	        }
+	        rawDataBuffer.close();
+		} catch (IOException e) {
+			System.err.println("Cannot read raw data file: " + rawDataFile.getAbsolutePath());
+		}
+    }
+    
+    public static void calculateSumAvgVar(HashMap<String, ArrayList<Double>> values, HashMap<String, Double> sum, HashMap<String, Double> avg, HashMap<String, Double> var) {
         for (String key : values.keySet()) {
         	//calculate average and sum for each reading (value) for each sensor type (key)
         	for (double val : values.get(key)) {
@@ -97,28 +191,59 @@ public class KnnCompRoad {
         	double keyVar = var.get(key) / values.get(key).size();
         	var.put(key, keyVar);
         }
-
-            //double dataComps[] = new double[dataSize];
-            
-            //dataComps[i] = Double.parseDouble(dataCompsStr[i]);
-            //dataAvg[i] += dataComps[i];
-            
-            //Add the row of variables to the data set
-            //fullData.add(dataComps);
-            
-            //The last column is not a variable, but instead specifies the classification.
-            //indexClass hashes the index of each row to its classification.
-            //double classification = Double.parseDouble(dataCompsStr[dataSize]);
-            //indexClass.put(index, classification);
-        	//index++;
-            
-        //}
-        br.close();
-        
-        //testPCA(fullData, indexClass, dataAvg);
-        //testVars(fullData, indexClass, dataAvg);
-
-
+    }
+    
+    //assumes values exist for sum, avg, and var
+    public static void writeFeatureFileHeaders(BufferedWriter featureFileBuffer, HashMap<String, Double> sum, HashMap<String, Double> avg, HashMap<String, Double> var) {
+		try {
+	    	//Write column headers.
+			for (String key : sum.keySet()) {
+				featureFileBuffer.write(key + "_sum,");
+			}
+			for (String key : avg.keySet()) {
+				featureFileBuffer.write(key + "_avg,");
+			}
+			int i = 0;
+			for (String key : var.keySet()) {
+				i++;
+				featureFileBuffer.write(key + "_var");
+				
+				//don't write comma after last feature
+				if (i < var.keySet().size()) {
+					featureFileBuffer.write(",");
+				}
+			}
+			featureFileBuffer.newLine();
+			featureFileBuffer.flush();
+		} catch (IOException e) {
+			System.err.println("Cannot write feature file headers.");
+		}
+    }
+    
+    public static void writeFeatureFile(BufferedWriter featureFileBuffer, HashMap<String, Double> sum, HashMap<String, Double> avg, HashMap<String, Double> var) {
+    	try {
+	    	//Write all values for single row.
+			for (String key : sum.keySet()) {
+				featureFileBuffer.write(Double.toString(sum.get(key)) + ",");
+			}
+			for (String key : avg.keySet()) {
+				featureFileBuffer.write(Double.toString(avg.get(key)) + ",");
+			}
+			int i = 0;
+			for (String key : var.keySet()) {
+				i++;
+				featureFileBuffer.write(Double.toString(var.get(key)));
+				
+				//don't write comma after last feature
+				if (i < var.keySet().size()) {
+					featureFileBuffer.write(",");
+				}
+			}
+			featureFileBuffer.newLine();
+			featureFileBuffer.flush();
+    	} catch (IOException e) {
+    		System.err.println("Cannot write to feature file.");
+    	}
     }
     
     public static void testPCA(ArrayList<double[]> fullData, HashMap<Integer,Double> indexClass, double[] dataAvg) {
