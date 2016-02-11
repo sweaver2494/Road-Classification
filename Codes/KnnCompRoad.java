@@ -22,31 +22,35 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+//import java.util.Random;
 
 
 public class KnnCompRoad {
-    private static final int NUM_OF_NEIGHBOURS = 5;
-    private static int TEST_INDEX = 10;
-    private static final int REDUCED_LENGTH = 8;
+    private static final int NUM_OF_NEIGHBOURS = 4;
+    //private static int TEST_INDEX = 2;
+    private static int REDUCED_LENGTH = 8;
+    
+    //Enter path of feature file if using existing file. Otherwise, a new one is created using files in RawData folder.
+    private static String FEATUREFILEPATH = "Data/FeatureFiles/features_9.csv";
+    
+    /*******Must include. This is the file you want to test against feature files*******/
+    private static String TESTFILEPATH = "Data/TestData/testData.csv";
 
     public static void main(String[] args) {
     	String featureFolderPath = "Data/FeatureFiles/";
     	(new File(featureFolderPath)).mkdirs();
- 
-		//Ensure files have unique names by appending an integer after conflicting filenames.
-		int i=0;
-		String featureFilePath  = featureFolderPath + "features_0.csv";
-		while ((new File(featureFilePath)).exists()) {
-			i++;
-			featureFilePath  = featureFolderPath + "features_" + i + ".csv";
-		}
-		System.out.println("Feature File Path " + featureFilePath);
-    	
 
-		try {
-	    	BufferedWriter featureFileBuffer = new BufferedWriter(new FileWriter(featureFilePath, true));
-	    	
+    	//If using an existing feature file, do not create new one. Otherwise file is generated from rawData files.
+    	if (FEATUREFILEPATH.equals("") || !(new File(FEATUREFILEPATH)).isFile()) {
+			//Ensure files have unique names by appending an integer after conflicting filenames.
+			int i=0;
+			String featureFilePath  = featureFolderPath + "features_0.csv";
+			while ((new File(featureFilePath)).exists()) {
+				i++;
+				featureFilePath  = featureFolderPath + "features_" + i + ".csv";
+			}
+			FEATUREFILEPATH = featureFilePath;
+
 	    	//values contains the values of each sensor type
 	        HashMap<String, ArrayList<Double>> values = new HashMap<String, ArrayList<Double>>();
 	    	//sum is the sum of all values of each sensor type
@@ -56,50 +60,65 @@ public class KnnCompRoad {
 	        //var is the variance of all variances of each sensor type
 	        HashMap<String, Double> var = new HashMap<String, Double>();
 	        
-	    	//Calculate sensor average & variance for each feature, then write to features file
+	        
 	    	String rawDataFolderPath = "Data/RawData/";
 	    	File rawDataFolder = new File(rawDataFolderPath);
-	    	String classification = "";
-	    	int row = 0;
-	    	if (rawDataFolder.isDirectory()) {
-	    		for (File rawDataFile : rawDataFolder.listFiles()) {
-	    			
-	    			//read sensor data file and list all values for each feature
-	    	        classification = readRawData(rawDataFile, values);
-	    	        
-	    	        //calculate the sum, average, and variance of all values for each feature
-	    	        calculateSumAvgVar(values, sum, avg, var);
-	    	        
-	    	        //write feature column headers only once
-	    	        if (row == 0) {
-	    	        	writeFeatureFileHeaders(featureFileBuffer, sum, avg, var);
-	    	        }
-	    	        
-	    	        //write single row of feature data, one column per feature
-	    	        writeFeatureFile(featureFileBuffer, sum, avg, var, classification);
-	    	        
-	    	        //set all default values for each key to reuse containers with the same key ordering
-	    	        for (String key : values.keySet()) {
-	    	        	ArrayList<Double> tempArrayList = values.get(key);
-	    	        	tempArrayList.clear();
-	    	        	
-	    	        	sum.replace(key, (double)0);
-	    	        	avg.replace(key, (double)0);
-	    	        	var.replace(key, (double)0);
-	    	        }
-	    	        
-	    	        row++;
-	    		}
-	    	}
-	    	featureFileBuffer.close();
 	    	
-	    	performClassificationAnalysis(featureFilePath);
-	    	
-		} catch (IOException e) {
-			System.err.println("IO Exception: " + e.getMessage());
+	    	//Calculate sensor average & variance for each feature, then write to features file
+			try {
+		    	BufferedWriter featureFileBuffer = new BufferedWriter(new FileWriter(FEATUREFILEPATH, true));
+
+		    	int row = 0;
+		    	if (rawDataFolder.isDirectory()) {
+		    		for (File rawDataFile : rawDataFolder.listFiles()) {
+		    			
+		    			//read sensor data file and list all values for each feature
+		    	        String classification = readRawData(rawDataFile, values);
+		    	        
+		    	        //calculate the sum, average, and variance of all values for each feature
+		    	        calculateSumAvgVar(values, sum, avg, var);
+		    	        
+		    	        //write feature column headers only once
+		    	        if (row == 0) {
+		    	        	writeFeatureFileHeaders(featureFileBuffer, sum, avg, var);
+		    	        }
+		    	        
+		    	        //write single row of feature data, one column per feature
+		    	        writeFeatureFile(featureFileBuffer, sum, avg, var, classification);
+		    	        
+		    	        //set all default values for each key to reuse containers with the same key ordering
+		    	        for (String key : values.keySet()) {
+		    	        	ArrayList<Double> tempArrayList = values.get(key);
+		    	        	tempArrayList.clear();
+		    	        	
+		    	        	sum.replace(key, (double)0);
+		    	        	avg.replace(key, (double)0);
+		    	        	var.replace(key, (double)0);
+		    	        }
+		    	        
+		    	        row++;
+		    		}
+		    	}
+		    	featureFileBuffer.close();
+		    	
+		    	
+		    	
+			} catch (IOException e) {
+				System.err.println("IO Exception: " + e.getMessage());
+			}
+    	}
+		
+		System.out.println("Feature File Path " + FEATUREFILEPATH);
+		System.out.println("Test File Path " + TESTFILEPATH);
+		
+		if ((new File(TESTFILEPATH)).isFile()) {
+			performClassificationAnalysis(FEATUREFILEPATH, TESTFILEPATH);
+		} else {
+			System.err.println("Test File does not exist");
 		}
     }
     
+    //Read rawData files and record all values for each feature type
     public static String readRawData(File rawDataFile, HashMap<String, ArrayList<Double>> values) {
     	String classification = "";
     	try {
@@ -197,15 +216,21 @@ public class KnnCompRoad {
     		
 	    	//Write all values for single row.
 			for (String key : sum.keySet()) {
-				featureFileBuffer.write(Double.toString(sum.get(key)) + ",");
+				double val = sum.get(key);
+				featureFileBuffer.write(Double.toString(val) + ",");
+				System.out.println("Sum: " + Double.toString(val));
 			}
 			for (String key : avg.keySet()) {
-				featureFileBuffer.write(Double.toString(avg.get(key)) + ",");
+				double val = avg.get(key);
+				featureFileBuffer.write(Double.toString(val) + ",");
+				System.out.println("Avg: " + Double.toString(val));
 			}
 			int i = 0;
 			for (String key : var.keySet()) {
 				i++;
-				featureFileBuffer.write(Double.toString(var.get(key)));
+				double val = var.get(key);
+				featureFileBuffer.write(Double.toString(val));
+				System.out.println("Var: " + Double.toString(val));
 				
 				//don't write comma after last feature
 				if (i < var.keySet().size()) {
@@ -219,16 +244,19 @@ public class KnnCompRoad {
     	}
     }
     
-    public static void performClassificationAnalysis(String featureFilePath) {
+    public static void performClassificationAnalysis(String featureFilePath, String testFilePath) {
         try {
         	//Contains each row of variables
             ArrayList<double[]> fullData = new ArrayList<>();
             ArrayList<String> fullDataClassification = new ArrayList<>();
-	        BufferedReader br = new BufferedReader(new FileReader(featureFilePath));
+	        BufferedReader brFeature = new BufferedReader(new FileReader(featureFilePath));
+	        BufferedReader brTest = new BufferedReader(new FileReader(testFilePath));
+	        
 	        //Ignore headers on first row. Skip to data
-	        br.readLine();
-	        String line = br.readLine();
-	
+	        brFeature.readLine();
+	        brTest.readLine();
+
+	        String line = brFeature.readLine();
 	        int dataSize = line.length() - line.replace(",", "").length();
 	
 	        double dataAvg[] = new double[dataSize];
@@ -246,28 +274,50 @@ public class KnnCompRoad {
 	
 	            fullData.add(dataComps);
 	            fullDataClassification.add(classification);
-	            line = br.readLine();
+	            line = brFeature.readLine();
 	        }
-	        br.close();
-	        testPCA(fullData, fullDataClassification, dataAvg);
+	        brFeature.close();
+	        
+	        //One line of data on test file
+	        line = brTest.readLine();
+	        String classification = line.substring(0, line.indexOf(","));
+	        String testCompsStr[] = line.substring(line.indexOf(",") + 1).split(",");
+	        double testComps[] = new double[dataSize];
+	        for (int i = 0; i < dataSize; i++) {
+                testComps[i] = Double.parseDouble(testCompsStr[i]);
+                dataAvg[i] += testComps[i];
+            }
+	        fullData.add(testComps);
+            fullDataClassification.add(classification);
+            brTest.close();
+	        
+
+	        testPCA(fullData, fullDataClassification, dataAvg, dataSize);
+	        
         } catch(IOException e) {
         	System.err.println("Cannot read feature file.");
         }
     }
     
-    public static void testPCA(ArrayList<double[]> fullData, ArrayList<String> fullDataClassification, double[] dataAvg) {
-        Random rn = new Random();
+    public static void testPCA(ArrayList<double[]> fullData, ArrayList<String> fullDataClassification, double[] dataAvg, int dataSize) {
+        /*Random rn = new Random();
         for (int i = 0; i < 5; i++) {
-            TEST_INDEX = rn.nextInt(13);
+            TEST_INDEX = rn.nextInt(15);
             
             System.out.println("Test instance is " + TEST_INDEX);
-
-            printNearestNeighbours(fullData, fullDataClassification, true);
-            printNearestNeighBoursPCA(fullData, fullDataClassification, dataAvg);
-            
-            System.out.println("---------------------------------------------");
-
-        }
+         */
+    	
+    	for (int i = dataSize; i > 0; i--) {
+	    	System.out.println("---------------------------------------------");
+	    	System.out.println("Number of Components = " + Integer.toString(i));
+	    	
+	    	REDUCED_LENGTH = i;
+	        
+	    	printNearestNeighbours(fullData, fullDataClassification, true);
+	        printNearestNeighBoursPCA(fullData, fullDataClassification, dataAvg);
+	            
+	        System.out.println("---------------------------------------------");
+    	}
     }
 
     public static double calculateDistance(double[] array1, double[] array2) {
@@ -279,10 +329,8 @@ public class KnnCompRoad {
     }
 
     private static ArrayList<DistObj> printNearestNeighbours(ArrayList<double[]> fullData, ArrayList<String> fullDataClassification, boolean toprint) {
-        int testIndex = TEST_INDEX;
         int fullDataSize = fullData.size();
-
-        
+        int testIndex = fullDataSize - 1;
 
         ArrayList<DistObj> distObjects = new ArrayList<>();
 
@@ -318,6 +366,7 @@ public class KnnCompRoad {
 
     private static void printNearestNeighBoursPCA(ArrayList<double[]> fullData, ArrayList<String> fullDataClassification, double[] dataAvg) {
         int fullDataSize = fullData.size();
+        int testIndex = fullDataSize - 1;
         int dataSize = fullData.get(0).length;
 
         double[][] oldData2dArray = new double[fullDataSize][dataSize];
@@ -391,7 +440,7 @@ public class KnnCompRoad {
         System.out.println("\nNeighbors After PCA: \n");
 
         for (int i = 1; i <= NUM_OF_NEIGHBOURS; i++) {
-            System.out.println("Neighbor " + i + ": Index=" + distObjects.get(i).index + ", Classification=" + fullDataClassification.get(distObjects.get(i).index) + ", Distance=" + calculateDistance(fullNewData.get(TEST_INDEX), fullNewData.get(distObjects.get(i).index)));
+            System.out.println("Neighbor " + i + ": Index=" + distObjects.get(i).index + ", Classification=" + fullDataClassification.get(distObjects.get(i).index) + ", Distance=" + calculateDistance(fullNewData.get(testIndex), fullNewData.get(distObjects.get(i).index)));
         }
     }
 
