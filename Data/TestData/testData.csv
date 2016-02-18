@@ -1,11 +1,2 @@
-classification,gyroscope_z_sum,accelerometer_y_sum,accelerometer_x_sum,magnetic_field_z_sum,magnetic_field_y_sum,accelerometer_z_sum,magnetic_field_x_sum,audio_sum,gyroscope_y_sum,gyroscope_x_sum,gyroscope_z_avg,accelerometer_y_avg,accelerometer_x_avg,magnetic_field_z_avg,magnetic_field_y_avg,accelerometer_z_avg,magnetic_field_x_avg,audio_avg,gyroscope_y_avg,gyroscope_x_avg,gyroscope_z_var,accelerometer_y_var,accelerometer_x_var,magnetic_field_z_var,magnetic_field_y_var,accelerometer_z_var,magnetic_field_x_var,audio_var,gyroscope_y_var,gyroscope_x_var
-test,4.938565983,7663.068686,-1137.175182,-19863.90025,-601.0000108,8304.030022,-3913.600041,-499627,1.739576899,-9.232647035,0.004239112,6.54403816,-0.971114588,-36.64926245,-1.108856108,7.091400531,-7.220664282,-11.48039982,0.001493199,-0.007925019,2.36E-04,0.005364803,0.01677624,0.234528997,1.669847805,0.029494447,0.97053247,9492.621077,7.26E-04,4.62E-04
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+classification,gyroscope_z_avg,accelerometer_y_avg,accelerometer_x_avg,magnetic_field_z_avg,magnetic_field_y_avg,accelerometer_z_avg,magnetic_field_x_avg,audio_avg,gyroscope_y_avg,gyroscope_x_avg,gyroscope_z_rms,accelerometer_y_rms,accelerometer_x_rms,magnetic_field_z_rms,magnetic_field_y_rms,accelerometer_z_rms,magnetic_field_x_rms,audio_rms,gyroscope_y_rms,gyroscope_x_rms,gyroscope_z_sdv,accelerometer_y_sdv,accelerometer_x_sdv,magnetic_field_z_sdv,magnetic_field_y_sdv,accelerometer_z_sdv,magnetic_field_x_sdv,audio_sdv,gyroscope_y_sdv,gyroscope_x_sdv
+test,0.012706039,6.09652329,-0.587945843,-32.21104996,-2.574401494,7.341097598,-15.04180499,-11.92321759,-0.0108808,0.017812327,0.147685002,6.13243653,0.96647182,32.24110505,3.76580772,9.140567581,15.13524379,3440.093181,0.516990024,0.818072112,0.147137406,0.662707749,0.767064185,1.391802936,2.74841131,5.445939933,1.679198376,3440.072518,0.51687551,0.81787817
