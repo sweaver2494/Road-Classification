@@ -3,20 +3,20 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javafx.util.Pair;
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 
 
 public class MLUtilities {
 	
-	public static ArrayList<DistObj> performKNN(ArrayList<double[]> fullData) {
+	public static ArrayList<DistObj> performKNN(ArrayList<double[]> fullData, double[] testData) {
         int fullDataSize = fullData.size();
-        int testIndex = fullDataSize - 1;
 
         ArrayList<DistObj> distObjects = new ArrayList<>();
 
         for (int i = 0; i < fullDataSize; i++) {
-            double distances = calculateDistance(fullData.get(testIndex), fullData.get(i));
+            double distances = calculateDistance(testData, fullData.get(i));
             DistObj dobj = new DistObj();
             dobj.index = i;
             dobj.distance = distances;
@@ -43,30 +43,71 @@ public class MLUtilities {
             }
         });
     }
-	
-	public static ArrayList<double[]> performPCA(ArrayList<double[]> fullData, double[] dataAvg, int reducedDataSize) {
-		int fullDataSize = fullData.size();
-        int dataSize = fullData.get(0).length;
-
-        double[][] oldData2dArray = new double[fullDataSize][dataSize];
+    
+    public static Pair<ArrayList<double[]>, double[]> performPCA(ArrayList<double[]> fullData, double[] testDataArr, double[] dataAvg, int reducedDataSize) {
+        
+    	//find eigenvectors of data set
+    	Matrix eigenVectors = getEigenVectors(fullData, dataAvg, reducedDataSize);
+        
+    	//use eigenvectors to calculate the reduced data set
+        ArrayList<double[]> fullNewData = calculatePCA(fullData, eigenVectors);
+        
+        //use the same eigenvectors to reduce the test data to fit in the same dimensionality as the training data
+        ArrayList<double[]> testData = new ArrayList<>();
+        testData.add(testDataArr);
+        double[] testNewData = calculatePCA(testData, eigenVectors).get(0);
+        
+        return new Pair<ArrayList<double[]>, double[]>(fullNewData, testNewData);
+    }
+    
+    private static ArrayList<double[]> calculatePCA(ArrayList<double[]> oldDataList, Matrix eigenVectors) {
+    	int oldDataSize = oldDataList.size();
+        int dataSize = oldDataList.get(0).length;
+        
+        double[][] oldData2dArray = new double[oldDataSize][dataSize];
 
         int count = 0;
-
-        for (double dataLine[] : fullData) {
+        for (double dataLine[] : oldDataList) {
             System.arraycopy(dataLine, 0, oldData2dArray[count], 0, dataSize);
             count++;
         }
+        
+        Matrix oldDataMatrix = new Matrix(oldData2dArray);
+        Matrix newDataMatrix = new Matrix(oldDataSize, dataSize);
+        
+        newDataMatrix = oldDataMatrix.times(eigenVectors);
 
-        // create a copy of fullData
-        ArrayList<double[]> fullDataAdjust = new ArrayList<>(fullData);
+        double[][] newData2dArray = new double[oldDataSize][dataSize];
+        
+        newData2dArray = newDataMatrix.getArrayCopy();
+        ArrayList<double[]> newDataList = new ArrayList<>();
 
+        for (int i = 0; i < oldDataSize; i++) {
+            newDataList.add(newData2dArray[i]);
+        }
+        
+        return newDataList;
+    }
+    
+    private static Matrix getEigenVectors(ArrayList<double[]> fullData, double[] dataAvg, int reducedDataSize) {
+        int dataSize = fullData.get(0).length;
+    	
+    	// create a copy of fullData
+        ArrayList<double[]> fullDataAdjust = new ArrayList<>();
+        for (double[] src : fullData) {
+        	double[] dest = new double[dataSize];
+        	System.arraycopy( src, 0, dest, 0, src.length );
+        	
+        	fullDataAdjust.add(dest);
+        }
+        
         //creating data adjust
         for (double dataAdjustComps[] : fullDataAdjust) {
             for (int i = 0; i < dataSize; i++) {
                 dataAdjustComps[i] -= dataAvg[i];
             }
         }
-
+        
         double[][] covarianceMatrix = new double[dataSize][dataSize];
 
         for (int i = 0; i < dataSize; i++) {
@@ -74,7 +115,7 @@ public class MLUtilities {
                 covarianceMatrix[i][j] = calculateCovariance(fullDataAdjust, i, j);
             }
         }
-
+        
         List<EigenObject> eigenObjList = performEigenOperations(covarianceMatrix, dataSize);
 
         double[][] eigenVector2dArray = new double[dataSize][reducedDataSize];
@@ -91,26 +132,11 @@ public class MLUtilities {
 
             eigenObjectCount++;
         }
-
-        Matrix oldData = new Matrix(oldData2dArray);
-        Matrix eigenVectors = new Matrix(eigenVector2dArray);
-
-        Matrix newData = new Matrix(fullDataSize, dataSize);
-
-        newData = oldData.times(eigenVectors);
-        System.out.println("");
-
-        double[][] newData2dArray = new double[fullDataSize][dataSize];
-
-        newData2dArray = newData.getArrayCopy();
-        ArrayList<double[]> fullNewData = new ArrayList<>();
-
-        for (int i = 0; i < fullDataSize; i++) {
-            fullNewData.add(newData2dArray[i]);
-        }
         
-        return fullNewData;
-	}
+        Matrix eigenVectors = new Matrix(eigenVector2dArray);
+        
+        return eigenVectors;
+    }
 	
     private static double calculateCovariance(ArrayList<double[]> fullDataAdjust, int i, int j) {
 

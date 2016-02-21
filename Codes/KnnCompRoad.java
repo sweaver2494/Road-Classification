@@ -1,6 +1,6 @@
 /*
- * This code makes a comparision of nearest neighbours (euclidean distance)
- * for randomly selected testinstances calculated before and after the 
+ * This code makes a comparison of nearest neighbors (Euclidean distance)
+ * for randomly selected test instances calculated before and after the 
  * application of PCA pre-processing.
  *
  * This code works for road classification datasets
@@ -17,8 +17,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javafx.util.Pair;
+
 public class KnnCompRoad {
-    private static final int NUM_OF_NEIGHBOURS = 4;
+    private static final int NUM_OF_NEIGHBORS = 5;
     //private static int TEST_INDEX = 2;
     private static int REDUCED_LENGTH = 8;
     
@@ -226,19 +228,19 @@ public class KnnCompRoad {
 			for (String key : avg.keySet()) {
 				double val = avg.get(key);
 				featureFileBuffer.write(Double.toString(val) + ",");
-				System.out.println("Avg: " + Double.toString(val));
+				//System.out.println("Avg: " + Double.toString(val));
 			}
 			for (String key : rms.keySet()) {
 				double val = rms.get(key);
 				featureFileBuffer.write(Double.toString(val) + ",");
-				System.out.println("Rms: " + Double.toString(val));
+				//System.out.println("Rms: " + Double.toString(val));
 			}
 			int i = 0;
 			for (String key : sdv.keySet()) {
 				i++;
 				double val = sdv.get(key);
 				featureFileBuffer.write(Double.toString(val));
-				System.out.println("Sdv: " + Double.toString(val));
+				//System.out.println("Sdv: " + Double.toString(val));
 				
 				//don't write comma after last feature
 				if (i < sdv.keySet().size()) {
@@ -288,26 +290,24 @@ public class KnnCompRoad {
 	        
 	        //One line of data on test file
 	        line = brTest.readLine();
-	        String classification = line.substring(0, line.indexOf(","));
-	        String testCompsStr[] = line.substring(line.indexOf(",") + 1).split(",");
-	        double testComps[] = new double[dataSize];
+	        String testDataClassification = line.substring(0, line.indexOf(","));
+	        String testDataStr[] = line.substring(line.indexOf(",") + 1).split(",");
+	        double testData[] = new double[dataSize];
 	        for (int i = 0; i < dataSize; i++) {
-                testComps[i] = Double.parseDouble(testCompsStr[i]);
-                dataAvg[i] += testComps[i];
+                testData[i] = Double.parseDouble(testDataStr[i]);
             }
-	        fullData.add(testComps);
-            fullDataClassification.add(classification);
             brTest.close();
 	        
 
-	        testPCA(fullData, fullDataClassification, dataAvg, dataSize);
+	        testPCA(fullData, testData, fullDataClassification, testDataClassification, dataAvg);
 	        
         } catch(IOException e) {
         	System.err.println("Cannot read feature file.");
         }
     }
     
-    public static void testPCA(ArrayList<double[]> fullData, ArrayList<String> fullDataClassification, double[] dataAvg, int dataSize) {
+    public static void testPCA(ArrayList<double[]> fullData, double[] testData, ArrayList<String> fullDataClassification, String testDataClassification, double[] dataAvg) {
+    	int dataSize = testData.length;
     	for (int i = dataSize; i > 0; i--) {
 	    	System.out.println("---------------------------------------------");
 	    	System.out.println("Number of Components = " + Integer.toString(i));
@@ -315,8 +315,8 @@ public class KnnCompRoad {
 	    	REDUCED_LENGTH = i;
 	        
 	    	//the false-true boolean specifies whether or not to perform PCA
-	    	printNearestNeighbors(fullData, fullDataClassification, dataAvg, false);
-	        printNearestNeighbors(fullData, fullDataClassification, dataAvg, true);
+	    	printNearestNeighbors(fullData, testData, fullDataClassification, testDataClassification, dataAvg, false);
+	        printNearestNeighbors(fullData, testData, fullDataClassification, testDataClassification, dataAvg, true);
 	            
 	        System.out.println("---------------------------------------------");
     	}
@@ -330,8 +330,10 @@ public class KnnCompRoad {
         return Math.sqrt(Sum);
     }
 
-    private static void printNearestNeighbors(ArrayList<double[]> fullData, ArrayList<String> fullDataClassification, double[] dataAvg, boolean performPCA) {
-
+    private static void printNearestNeighbors(ArrayList<double[]> fullData, double[] testData, ArrayList<String> fullDataClassification, String testDataClassification, double[] dataAvg, boolean performPCA) {
+    	
+    	ArrayList<DistObj> distObjects = null;
+    	
         if (performPCA) {
             int fullDataSize = fullData.size();
             int dataSize = fullData.get(0).length;
@@ -339,20 +341,38 @@ public class KnnCompRoad {
 	        for (int i = 0; i < dataSize; i++) {
 	            dataAvg[i] /= fullDataSize;
 	        }
-	        fullData = MLUtilities.performPCA(fullData, dataAvg, REDUCED_LENGTH);
+	        
+	        Pair<ArrayList<double[]>, double[]> newData = MLUtilities.performPCA(fullData, testData, dataAvg, REDUCED_LENGTH);
 	        
 	        System.out.println("\nNeighbors After PCA: \n");
+	        
+	        distObjects = MLUtilities.performKNN(newData.getKey(), newData.getValue());
         } else {
         	System.out.println("\nNeighbors Before PCA: \n");
+
+        	distObjects = MLUtilities.performKNN(fullData, testData);
         }
+        
+        System.out.println("Test Data Classification: " + testDataClassification);
+        double matchingNeighbors = 0;
+        double totalDistance = 0;
 
-        ArrayList<DistObj> distObjects = MLUtilities.performKNN(fullData);
-
-        for (int i = 1; i <= NUM_OF_NEIGHBOURS; i++) {
+        for (int i = 0; i < NUM_OF_NEIGHBORS; i++) {
         	int index = distObjects.get(i).index;
         	double distance = distObjects.get(i).distance;
-            System.out.println("Neighbor " + i + ": Index=" + index + ", Classification=" + fullDataClassification.get(index) + ", Distance=" + distance);
+            System.out.println("Neighbor " + (i+1) + ": Index=" + index + ", Classification=" + fullDataClassification.get(index) + ", Distance=" + distance);
+            
+            totalDistance += distance;
+            if (fullDataClassification.get(index).equals(testDataClassification)) {
+            	matchingNeighbors++;
+            }
         }
+        
+        double classificationAccuracy = (matchingNeighbors / NUM_OF_NEIGHBORS) * 100;
+        System.out.println("Number of nearest neighbors correctly classified: " + matchingNeighbors);
+        System.out.println("Classification Accuracy: " + classificationAccuracy + "%");
+        System.out.println("Sum of distances:" + totalDistance);
+        
     }
     
 }
